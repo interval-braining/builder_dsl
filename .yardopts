@@ -1,0 +1,7 @@
+--output-dir doc/
+--readme README.md
+--title BuilderDSL
+--markup=markdown
+--protected
+--private
+lib/builder_dsl/**/*.rb
