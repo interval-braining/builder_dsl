@@ -1,4 +1,8 @@
 # BuilderDSL
+[![Build Status](https://travis-ci.org/interval-braining/builder_dsl.png)](https://travis-ci.org/interval-braining/builder_dsl)
+[![Coverage Status](https://coveralls.io/repos/interval-braining/builder_dsl/badge.png)](https://coveralls.io/r/interval-braining/builder_dsl)
+[![Code Climate](https://codeclimate.com/github/interval-braining/builder_dsl.png)](https://codeclimate.com/github/interval-braining/builder_dsl)
+[![Dependency Status](https://gemnasium.com/interval-braining/builder_dsl.png)](https://gemnasium.com/interval-braining/builder_dsl)
 
 Simple DSL for defining Builder classes with customized DSLs.
 
