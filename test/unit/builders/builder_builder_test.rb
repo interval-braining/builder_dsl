@@ -1,10 +1,119 @@
 require 'test_helper'
 
 module BuilderDSL
-  class Builder
-    class DSLTest < MiniTest::Test
+  module Builders
+    class BuilderBuilderTest < MiniTest::Test
 
-      context 'DSL methods' do
+      context 'BuilderBuilder class methods' do
+
+        should 'generate a new Builder class without block given' do
+          builder = BuilderBuilder.build
+          assert_kind_of Class, builder
+          assert builder.ancestors.include?(BuilderDSL::Builders::BuilderBuilder::InstanceMethods)
+        end
+
+
+        should 'generate a new Builder class with block given' do
+          new_block_arg = new_self = nil
+          # Validates block form
+          builder = BuilderBuilder.build do |subclass|
+            # Leave marker of instance evaluation
+            define_singleton_method(:builder_evaluated) { true }
+            # Test usage of block argument
+            subclass.resource_class = Hash
+            # Set up variables for evaluation back in the test
+            new_self = self
+            new_block_arg = subclass
+          end
+
+          # Validate DSL context variables
+          assert_equal builder, new_block_arg
+          assert_equal builder, new_self
+
+          # Validate assignments and markers
+          assert_equal Hash, builder.resource_class
+          assert_equal true, builder.builder_evaluated
+        end
+
+      end
+
+
+      context 'Builder class instance methods' do
+
+        setup do
+          @struct = struct = Struct.new(:key, :value)
+          @builder = BuilderDSL.define do
+            resource_class struct
+            attribute :key
+            attribute :value
+          end
+        end
+
+
+        context '::new' do
+
+          should 'accept a block and evaluate the block on the builder instance' do
+            struct = @builder.build do
+              key :a
+              value 'a'
+            end
+            assert_equal :a, struct.key
+            assert_equal 'a', struct.value
+          end
+
+
+          should 'return the generated instance when no block given' do
+            the_struct = @struct.new
+            the_struct.key = :a
+            the_struct.value = 'a'
+            @struct.expects(:new).returns(the_struct)
+
+            struct = @builder.build
+            assert_equal :a, struct.key
+            assert_equal 'a', struct.value
+          end
+
+
+          should 'utilize a custom initialize_with proc if available' do
+            @builder.initialize_with do |builder|
+              instance = resource_class.new
+              instance.key = :b
+              instance.value = 'b'
+              instance
+            end
+
+            struct = @builder.build
+            assert_equal :b, struct.key
+            assert_equal 'b', struct.value
+          end
+
+        end
+
+
+        context '::initialize_with' do
+
+          setup do
+            @initializer = lambda { |i| Hash.new }
+            @builder.initialize_with(&@initializer)
+          end
+
+
+          should 'set @initialize_with if given a block' do
+            assert_equal @builder.initialize_with, @initializer
+            assert_equal @builder.instance_variable_get(:@initialize_with), @initializer
+          end
+
+
+          should 'return @initialize_with if no block given' do
+            assert_equal @builder.instance_variable_get(:@initialize_with), @builder.initialize_with
+          end
+
+        end
+
+      end
+
+
+      context 'instance methods' do
 
         setup do
           @struct = struct = Struct.new(:key, :value)
@@ -14,7 +123,6 @@ module BuilderDSL
             attribute(:value)
           end
           @builder = builder = BuilderDSL.define
-          @meta = BuilderDSL.send(:meta_builder)
           @lambda = lambda {|i| builder}
         end
 
@@ -27,23 +135,20 @@ module BuilderDSL
 
 
           should 'delegate calls to attr_name to receiver via receiver_method' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:'@instance.c', :b, :a,)
-            BuilderDSL.define { attribute(:a, :b, :c) }
+            @builder.attribute(:a, :b, :c)
           end
 
 
           should 'delegate to attr_name= on receiver by default' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:@instance, :a=, :a,)
-            BuilderDSL.define { attribute(:a) }
+            @builder.attribute(:a)
           end
 
 
           should 'delegate directly to the @instance by default' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:@instance, :a=, :a)
-            BuilderDSL.define { attribute(:a) }
+            @builder.attribute(:a)
           end
 
         end
@@ -74,7 +179,7 @@ module BuilderDSL
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
-            instance = builder.new { foo { key(:a); value(:b) } }
+            instance = builder.build { foo { key(:a); value(:b) } }
             assert_equal :a, instance.value.key
             assert_equal :b, instance.value.value
           end
@@ -89,20 +194,20 @@ module BuilderDSL
                 attribute :bar, :key=
               end
             end
-            instance = builder.new { foo { bar :a } }
+            instance = builder.build { foo { bar :a } }
             assert_equal :a, instance.value.key
           end
 
 
           should 'accept a custom builder class' do
             dict_builder, struct = @dict_builder, @struct
-            db = dict_builder.new
-            dict_builder.expects(:new).returns(db)
+            db = dict_builder.build
+            dict_builder.expects(:build).returns(db)
             builder = BuilderDSL.define do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
-            instance = builder.new { foo { |i| } }
+            instance = builder.build { foo { |i| } }
             assert_equal db, instance.value
           end
 
@@ -114,7 +219,7 @@ module BuilderDSL
               builder(:value, :value=, dict_builder)
               builder(:foo, :value=, dict_builder, :value)
             end
-            instance = builder.new do
+            instance = builder.build do
               value { key(:a) }
               foo { |i| value(:b) }
             end
@@ -134,21 +239,21 @@ module BuilderDSL
 
 
             should 'raise ArgumentError if given static instance and block or neither' do
-              assert_raises(ArgumentError) { @builder_instance.new { foo } }
+              assert_raises(ArgumentError) { @builder_instance.build { foo } }
               assert_raises(ArgumentError) do
-                @builder_instance.new { foo(true) {|i| } }
+                @builder_instance.build { foo(true) {|i| } }
               end
             end
 
 
             should 'pass a static instance to the receiver method of the receiver' do
-              instance = @builder_instance.new { foo(true) }
+              instance = @builder_instance.build { foo(true) }
               assert_equal true, instance.value
             end
 
 
             should 'evaluate builder definition and send instance to the receiver method of receiver' do
-              instance = @builder_instance.new { foo { value(true) } }
+              instance = @builder_instance.build { foo { value(true) } }
               assert_equal true, instance.value.value
             end
 
@@ -160,38 +265,25 @@ module BuilderDSL
         context '#delegate' do
 
           should 'raise ArgumentError unless method_name provided' do
-            assert_raises(ArgumentError) do
-              BuilderDSL.define do
-                delegate
-              end
-            end
+            assert_raises(ArgumentError) { @builder.delegate }
           end
 
 
           should 'create a delegator to @instance.receiver.receiver_method aliased to method_name' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:'@instance.receiver', :receiver_method, :method_name)
-            BuilderDSL.define do
-              delegate(:method_name, :receiver_method, :receiver)
-            end
+            @builder.delegate(:method_name, :receiver_method, :receiver)
           end
 
 
           should 'create a delegator to @instance.receiver_method aliased to method_name by default' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:@instance, :receiver_method, :method_name)
-            BuilderDSL.define do
-              delegate(:method_name, :receiver_method)
-            end
+            @builder.delegate(:method_name, :receiver_method)
           end
 
 
           should 'create a delegator to @instance.method_name aliased to method_name by default' do
-            @meta.expects(:initialize_with).returns(@lambda)
             @builder.expects(:def_delegator).with(:@instance, :method_name, :method_name)
-            BuilderDSL.define do
-              delegate(:method_name)
-            end
+            @builder.delegate(:method_name)
           end
 
         end

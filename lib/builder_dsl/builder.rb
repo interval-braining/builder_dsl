@@ -5,11 +5,23 @@ module BuilderDSL
     class << self
       attr_writer :initialize_with
       attr_accessor :resource_class
+      attr_writer :default_definition_builder
     end
 
     extend DSL
 
     DEFAULT_INITIALIZE_WITH = lambda { |instance| resource_class.new }
+    DEFAULT_DEFINITION_BUILDER = BuilderDSL::Builders::BuilderBuilder
+
+    def self.default_definition_builder
+      return @default_definition_builder || DEFAULT_DEFINITION_BUILDER
+    end
+
+
+    def self.define(definition_builder = self.default_definition_builder, *args)
+      block_given? ? definition_builder.build(*args, &Proc.new) : definition_builder.build
+    end
+
 
     def self.new
       if self == ::BuilderDSL::Builder
