@@ -2,6 +2,8 @@ require 'test_helper'
 
 class BuilderDSLTest < MiniTest::Test
 
+  DEFAULT_DEF_BUILDER = BuilderDSL::DEFAULT_DEFINITION_BUILDER
+
   context 'BuilderDSL' do
 
     should 'be defined' do
@@ -49,13 +51,9 @@ class BuilderDSLTest < MiniTest::Test
 
             struct_dict = struct_dict_builder.build do |b|
               key(:c)
-          begin
               value do
                 key(:d)
               end
-          rescue => e
-            binding.pry
-          end
               inner_value(:e)
             end
           assert_equal :c, struct_dict.key
@@ -70,17 +68,63 @@ class BuilderDSLTest < MiniTest::Test
 
     context 'configuration' do
 
+      setup do
+        @original_config = BuilderDSL.default_definition_builder
+        @simple_builder = Class.new do
+          attr_accessor :args, :block
+          def self.build(*args)
+            instance = new
+            instance.block = Proc.new if block_given?
+            instance.args = args
+            instance
+          end
+        end
+      end
+
+
+      teardown do
+        BuilderDSL.default_definition_builder = @original_config
+      end
+
+
       context '::default_definition_builder' do
 
         should 'return @default_defintion_builder or DEFAULT_DEFINITION_BUILDER' do
-          original = BuilderDSL.default_definition_builder
-
           BuilderDSL.default_definition_builder = nil
-          assert_equal BuilderDSL.default_definition_builder, BuilderDSL::DEFAULT_DEFINITION_BUILDER
-          BuilderDSL.default_definition_builder = Hash.new
-          assert_equal BuilderDSL.default_definition_builder, Hash.new
+          assert_equal BuilderDSL.default_definition_builder, DEFAULT_DEF_BUILDER
+          BuilderDSL.default_definition_builder = @simple_builder
+          assert_equal BuilderDSL.default_definition_builder, @simple_builder
+        end
 
-          BuilderDSL.default_definition_builder = original
+      end
+
+
+      context '::default_definition_builder=' do
+
+        [nil, false].each do |value|
+          should "accept #{value.inspect} to reset the default_definition_builder" do
+            BuilderDSL.default_definition_builder = @simple_builder
+            assert_equal BuilderDSL.default_definition_builder, @simple_builder
+            BuilderDSL.default_definition_builder = value
+            assert_equal BuilderDSL.default_definition_builder, DEFAULT_DEF_BUILDER
+          end
+        end
+
+
+        should 'raise an error if the proivded object does not respond to #build' do
+          BuilderDSL.default_definition_builder = nil
+          assert_equal BuilderDSL.default_definition_builder, DEFAULT_DEF_BUILDER
+          assert_raises(ArgumentError) do
+            BuilderDSL.default_definition_builder = Class.new
+          end
+        end
+
+
+        should 'set the default_definition_builder' do
+          BuilderDSL.default_definition_builder = nil
+          assert_equal BuilderDSL.default_definition_builder, DEFAULT_DEF_BUILDER
+          BuilderDSL.default_definition_builder = @simple_builder
+          assert_equal BuilderDSL.default_definition_builder, @simple_builder
         end
 
       end

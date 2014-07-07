@@ -8,8 +8,11 @@ module BuilderDSL
     return @default_definition_builder || DEFAULT_DEFINITION_BUILDER
   end
 
-  def self.default_definition_builder=(klass)
-    @default_definition_builder = klass
+  def self.default_definition_builder=(builder)
+    if !!builder && !builder.respond_to?(:build)
+      raise ArgumentError, 'Expected object that responds to #build'
+    end
+    @default_definition_builder = builder
   end
 
   def self.define(definition_builder = self.default_definition_builder, *args)

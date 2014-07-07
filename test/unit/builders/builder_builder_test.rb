@@ -38,82 +38,7 @@ module BuilderDSL
       end
 
 
-      context 'Builder class instance methods' do
-
-        setup do
-          @struct = struct = Struct.new(:key, :value)
-          @builder = BuilderDSL.define do
-            resource_class struct
-            attribute :key
-            attribute :value
-          end
-        end
-
-
-        context '::new' do
-
-          should 'accept a block and evaluate the block on the builder instance' do
-            struct = @builder.build do
-              key :a
-              value 'a'
-            end
-            assert_equal :a, struct.key
-            assert_equal 'a', struct.value
-          end
-
-
-          should 'return the generated instance when no block given' do
-            the_struct = @struct.new
-            the_struct.key = :a
-            the_struct.value = 'a'
-            @struct.expects(:new).returns(the_struct)
-
-            struct = @builder.build
-            assert_equal :a, struct.key
-            assert_equal 'a', struct.value
-          end
-
-
-          should 'utilize a custom initialize_with proc if available' do
-            @builder.initialize_with do |builder|
-              instance = resource_class.new
-              instance.key = :b
-              instance.value = 'b'
-              instance
-            end
-
-            struct = @builder.build
-            assert_equal :b, struct.key
-            assert_equal 'b', struct.value
-          end
-
-        end
-
-
-        context '::initialize_with' do
-
-          setup do
-            @initializer = lambda { |i| Hash.new }
-            @builder.initialize_with(&@initializer)
-          end
-
-
-          should 'set @initialize_with if given a block' do
-            assert_equal @builder.initialize_with, @initializer
-            assert_equal @builder.instance_variable_get(:@initialize_with), @initializer
-          end
-
-
-          should 'return @initialize_with if no block given' do
-            assert_equal @builder.instance_variable_get(:@initialize_with), @builder.initialize_with
-          end
-
-        end
-
-      end
-
-
-      context 'instance methods' do
+      context 'BuilderBuilder generated Builder class methods' do
 
         setup do
           @struct = struct = Struct.new(:key, :value)
@@ -122,12 +47,11 @@ module BuilderDSL
             attribute(:key)
             attribute(:value)
           end
-          @builder = builder = BuilderDSL.define
-          @lambda = lambda {|i| builder}
+          @builder = BuilderDSL.define
         end
 
 
-        context '#attribute' do
+        context '::attribute' do
 
           should 'raise ArgumentError unless attribute name provided' do
             assert_raises(ArgumentError) { BuilderDSL.define { attribute } }
@@ -151,10 +75,16 @@ module BuilderDSL
             @builder.attribute(:a)
           end
 
+
+          should 'return the Symbol form of the provided attr_name' do
+            result = @builder.attribute(:a)
+            assert_equal :a, result
+          end
+
         end
 
 
-        context '#builder' do
+        context '::builder' do
 
           should 'raise an error unless a Builder class xor proc is provided' do
             assert_raises(ArgumentError) do
@@ -168,8 +98,15 @@ module BuilderDSL
           end
 
 
-          should 'raise an error unless an attr name is provided' do
+          should 'raise an error unless an attr_name is provided' do
             assert_raises(ArgumentError) { BuilderDSL.define { builder } }
+          end
+
+
+          should 'return the Symbol form of the provided attr_name' do
+            dict_builder = @dict_builder
+            result = @builder.builder(:foo, :value=, dict_builder)
+            assert_equal :foo, result
           end
 
 
@@ -182,6 +119,17 @@ module BuilderDSL
             instance = builder.build { foo { key(:a); value(:b) } }
             assert_equal :a, instance.value.key
             assert_equal :b, instance.value.value
+          end
+
+
+          should 'take a custom receiver proc' do
+            dict_builder, struct = @dict_builder, @struct
+            builder = BuilderDSL.define do
+              resource_class struct
+              builder(:foo, :value=, dict_builder, lambda { |i| String })
+            end
+            String.expects(:value=)
+            builder.build { foo { key(:a); value(:b) } }
           end
 
 
@@ -226,43 +174,10 @@ module BuilderDSL
             assert_equal :b, instance.value.value.value
           end
 
-
-          context 'builder generated instance method' do
-
-            setup do
-              dict_builder, struct = @dict_builder, @struct
-              @builder_instance = BuilderDSL.define do
-                resource_class struct
-                builder(:foo, :value=, dict_builder)
-              end
-            end
-
-
-            should 'raise ArgumentError if given static instance and block or neither' do
-              assert_raises(ArgumentError) { @builder_instance.build { foo } }
-              assert_raises(ArgumentError) do
-                @builder_instance.build { foo(true) {|i| } }
-              end
-            end
-
-
-            should 'pass a static instance to the receiver method of the receiver' do
-              instance = @builder_instance.build { foo(true) }
-              assert_equal true, instance.value
-            end
-
-
-            should 'evaluate builder definition and send instance to the receiver method of receiver' do
-              instance = @builder_instance.build { foo { value(true) } }
-              assert_equal true, instance.value.value
-            end
-
-          end
-
         end
 
 
-        context '#delegate' do
+        context '::delegate' do
 
           should 'raise ArgumentError unless method_name provided' do
             assert_raises(ArgumentError) { @builder.delegate }
@@ -284,6 +199,202 @@ module BuilderDSL
           should 'create a delegator to @instance.method_name aliased to method_name by default' do
             @builder.expects(:def_delegator).with(:@instance, :method_name, :method_name)
             @builder.delegate(:method_name)
+          end
+
+
+          should 'return the symbol identifier form of attr_name' do
+            assert_equal :method_name, @builder.delegate('method_name')
+          end
+
+        end
+
+
+        context '::new' do
+
+          should 'accept a block and evaluate the block on the builder instance' do
+            struct = @dict_builder.build do
+              key :a
+              value 'a'
+            end
+            assert_equal :a, struct.key
+            assert_equal 'a', struct.value
+          end
+
+
+          should 'return the generated instance when no block given' do
+            the_struct = @struct.new
+            the_struct.key = :a
+            the_struct.value = 'a'
+            @struct.expects(:new).returns(the_struct)
+
+            struct = @dict_builder.build
+            assert_equal :a, struct.key
+            assert_equal 'a', struct.value
+          end
+
+
+          should 'utilize a custom initialize_with proc if available' do
+            @dict_builder.initialize_with do |builder|
+              instance = resource_class.new
+              instance.key = :b
+              instance.value = 'b'
+              instance
+            end
+
+            struct = @dict_builder.build
+            assert_equal :b, struct.key
+            assert_equal 'b', struct.value
+          end
+
+        end
+
+
+        context '::initialize_with' do
+
+          setup do
+            @initializer = lambda { |i| Hash.new }
+            @dict_builder.initialize_with(&@initializer)
+          end
+
+
+          should 'set @initialize_with if given a block' do
+            assert_equal @dict_builder.initialize_with, @initializer
+            assert_equal @dict_builder.instance_variable_get(:@initialize_with), @initializer
+          end
+
+
+          should 'return @initialize_with if no block given' do
+            assert_equal @dict_builder.instance_variable_get(:@initialize_with), @dict_builder.initialize_with
+          end
+
+        end
+
+
+        context '::initialize_with=' do
+
+          setup do
+            @initializer = lambda { |i| Hash.new }
+          end
+
+
+          should 'raise an error if a non-proc is provided' do
+            assert_raises(ArgumentError) do
+              @dict_builder.initialize_with = :foo
+            end
+          end
+
+
+          should 'set @initialize_with if given a proc' do
+            @dict_builder.initialize_with = @initializer
+            assert_equal @dict_builder.initialize_with, @initializer
+            assert_equal @dict_builder.instance_variable_get(:@initialize_with), @initializer
+          end
+
+        end
+
+
+        context '::resource_class' do
+
+          should 'return the current resource_class when no arguments are given' do
+            assert_equal nil, @builder.resource_class
+            @builder.resource_class = @struct
+            assert_equal @struct, @builder.resource_class
+          end
+
+
+          should 'set the current resource_class when an argument is given' do
+            @builder.resource_class(@struct)
+            assert_equal @struct, @builder.resource_class
+          end
+
+
+          should 'set and return the argument given when given an argument' do
+            assert_equal @struct, @builder.resource_class(@struct)
+          end
+
+        end
+
+
+        context '::resource_class=' do
+
+          should 'set the current resource_class' do
+            @builder.resource_class = @struct
+            assert_equal @struct, @builder.resource_class
+          end
+
+
+          should 'return the argument given' do
+            assert_equal @struct, @builder.resource_class = @struct
+          end
+
+        end
+
+      end
+
+
+      context 'BuilderBuilder generated Builder class instance methods' do
+
+        setup do
+          @struct = struct = Struct.new(:key, :value)
+          @dict_builder = BuilderDSL.define do
+            resource_class struct
+            attribute(:key)
+            attribute(:value)
+          end
+        end
+
+
+        context '::builder generated instance method' do
+
+          setup do
+            dict_builder, struct = @dict_builder, @struct
+            @builder_instance = BuilderDSL.define do
+              resource_class struct
+              builder(:foo, :value=, dict_builder)
+            end
+          end
+
+
+          should 'raise ArgumentError if given static instance and block or neither' do
+            assert_raises(ArgumentError) { @builder_instance.build { foo } }
+            assert_raises(ArgumentError) do
+              @builder_instance.build { foo(true) {|i| } }
+            end
+          end
+
+
+          should 'pass a static instance to the receiver method of the receiver' do
+            instance = @builder_instance.build { foo(true) }
+            assert_equal true, instance.value
+          end
+
+
+          should 'evaluate builder definition and send instance to the receiver method of receiver' do
+            instance = @builder_instance.build { foo { value(true) } }
+            assert_equal true, instance.value.value
+          end
+
+        end
+
+
+        context '#initialize' do
+
+          should 'require an instance' do
+            assert_raises(ArgumentError) { @dict_builder.new }
+            struct = @struct.new(:k, :v)
+            builder = @dict_builder.new(struct)
+            assert_equal struct, builder.instance
+          end
+
+        end
+
+
+        context '#instance' do
+
+          should 'return the object instance being built' do
+            struct = @struct.new(:k, :v)
+            builder = @dict_builder.new(struct)
+            assert_equal struct, builder.instance
           end
 
         end
