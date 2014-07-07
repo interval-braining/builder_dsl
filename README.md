@@ -22,7 +22,33 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+BuilderDSL makes it easy to create customized DSLs for building all variety of
+objects. At its simplest, a builder is any Class or Module that implements a
+build function.
+
+```ruby
+  CustomBuilder.build(*args) do |stuff|
+
+  end
+```
+
+```ruby
+
+  # Uses default definition builder
+  BuilderDSL.define do
+    # stuff
+  end
+
+
+  # Uses custom builder to define new builder. Additional args are passed to
+  # the build method of the definition_builder_class.
+  BuilderDSL.define(definition_builder_class, :foo) do
+    # stuff
+  end
+```
+
+## Configuration
+
 
 ## Contributing
 

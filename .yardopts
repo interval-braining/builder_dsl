@@ -4,4 +4,4 @@
 --markup=markdown
 --protected
 --private
-lib/builder_dsl/**/*.rb
+lib/**/*.rb
