@@ -177,6 +177,7 @@ module BuilderDSL
           end
 
           define_builder_method(attr_name, receiver_method, builder_class, receiver_proc)
+          attr_name.to_sym
         end
 
         # Declares a delegate method that will be available to instances of the
