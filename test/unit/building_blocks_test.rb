@@ -2,7 +2,7 @@ require 'test_helper'
 
 class BuildingBlocksTest < MiniTest::Test
 
-  DEFAULT_DEF_BUILDER = BuildingBlocks::DEFAULT_DEFINITION_BUILDER
+  DEFAULT_BUILDER = BuildingBlocks::DEFAULT_DEFINITION_BUILDER
 
   context 'BuildingBlocks' do
 
@@ -69,7 +69,7 @@ class BuildingBlocksTest < MiniTest::Test
     context 'configuration' do
 
       setup do
-        @original_config = BuildingBlocks.default_definition_builder
+        @original_config = BuildingBlocks.default_builder
         @simple_builder = Class.new do
           attr_accessor :args, :block
           def self.build(*args)
@@ -83,48 +83,48 @@ class BuildingBlocksTest < MiniTest::Test
 
 
       teardown do
-        BuildingBlocks.default_definition_builder = @original_config
+        BuildingBlocks.default_builder = @original_config
       end
 
 
-      context '::default_definition_builder' do
+      context '::default_builder' do
 
         should 'return @default_defintion_builder or DEFAULT_DEFINITION_BUILDER' do
-          BuildingBlocks.default_definition_builder = nil
-          assert_equal BuildingBlocks.default_definition_builder, DEFAULT_DEF_BUILDER
-          BuildingBlocks.default_definition_builder = @simple_builder
-          assert_equal BuildingBlocks.default_definition_builder, @simple_builder
+          BuildingBlocks.default_builder = nil
+          assert_equal BuildingBlocks.default_builder, DEFAULT_BUILDER
+          BuildingBlocks.default_builder = @simple_builder
+          assert_equal BuildingBlocks.default_builder, @simple_builder
         end
 
       end
 
 
-      context '::default_definition_builder=' do
+      context '::default_builder=' do
 
         [nil, false].each do |value|
-          should "accept #{value.inspect} to reset the default_definition_builder" do
-            BuildingBlocks.default_definition_builder = @simple_builder
-            assert_equal BuildingBlocks.default_definition_builder, @simple_builder
-            BuildingBlocks.default_definition_builder = value
-            assert_equal BuildingBlocks.default_definition_builder, DEFAULT_DEF_BUILDER
+          should "accept #{value.inspect} to reset the default_builder" do
+            BuildingBlocks.default_builder = @simple_builder
+            assert_equal BuildingBlocks.default_builder, @simple_builder
+            BuildingBlocks.default_builder = value
+            assert_equal BuildingBlocks.default_builder, DEFAULT_BUILDER
           end
         end
 
 
         should 'raise an error if the proivded object does not respond to #build' do
-          BuildingBlocks.default_definition_builder = nil
-          assert_equal BuildingBlocks.default_definition_builder, DEFAULT_DEF_BUILDER
+          BuildingBlocks.default_builder = nil
+          assert_equal BuildingBlocks.default_builder, DEFAULT_BUILDER
           assert_raises(ArgumentError) do
-            BuildingBlocks.default_definition_builder = Class.new
+            BuildingBlocks.default_builder = Class.new
           end
         end
 
 
-        should 'set the default_definition_builder' do
-          BuildingBlocks.default_definition_builder = nil
-          assert_equal BuildingBlocks.default_definition_builder, DEFAULT_DEF_BUILDER
-          BuildingBlocks.default_definition_builder = @simple_builder
-          assert_equal BuildingBlocks.default_definition_builder, @simple_builder
+        should 'set the default_builder' do
+          BuildingBlocks.default_builder = nil
+          assert_equal BuildingBlocks.default_builder, DEFAULT_BUILDER
+          BuildingBlocks.default_builder = @simple_builder
+          assert_equal BuildingBlocks.default_builder, @simple_builder
         end
 
       end
