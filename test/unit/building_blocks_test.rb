@@ -13,10 +13,10 @@ class BuildingBlocksTest < MiniTest::Test
 
     context 'Factory methods' do
 
-      context '::define' do
+      context '::build' do
 
         setup do
-          @builder = BuildingBlocks.define
+          @builder = BuildingBlocks.build
         end
 
 
@@ -29,13 +29,13 @@ class BuildingBlocksTest < MiniTest::Test
         should 'return an evaluated Builder instance when block is given' do
           struct = Struct.new(:key, :value)
 
-          dict_builder = BuildingBlocks.define do |b|
+          dict_builder = BuildingBlocks.build do |b|
             resource_class struct
             attribute :key
             attribute :value
           end
 
-          struct_dict_builder = BuildingBlocks.define do |i|
+          struct_dict_builder = BuildingBlocks.build do |i|
             resource_class struct
             attribute(:key)
             builder(:value, :value=, dict_builder)

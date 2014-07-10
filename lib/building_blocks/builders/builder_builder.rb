@@ -108,7 +108,7 @@ module BuildingBlocks
         # used to generate the object for the receiver. If no **builder_class**
         # is given and instead a **block** is provided, the given block is
         # treated as an anonymous builder definition that is passed to
-        # {BuildingBlocks.define} to generate a new builder class that will be
+        # {BuildingBlocks.build} to generate a new builder class that will be
         # used later when **attr_name** is invoked on an instance of the
         # generated builder class.
         #
@@ -150,7 +150,7 @@ module BuildingBlocks
         #   return the intended **receiver** object.
         # @param [Proc] block A block may be provided in place of a predefined
         #   **builder_class**. If such a block is provided, the given block is
-        #   evaluated by {BuildingBlocks.define} to generate a new anonymous
+        #   evaluated by {BuildingBlocks.build} to generate a new anonymous
         #   builder class. Cannot be used in conjunction with a predefined
         #   **builder_class**.
         # @raise [ArgumentError] Raised if both a **builder_class** and a
@@ -159,14 +159,14 @@ module BuildingBlocks
         # @return [Symbol] The Symbol identifier form of **attr_name**
         #   identifying the method that will be available to instances of the
         #   generated builder class.
-        # @see BuildingBlocks.define
+        # @see BuildingBlocks.build
         # @see #define_builder_method
         # @see InstanceMethods#example_builder_attr
         def builder(attr_name, receiver_method = "#{attr_name}=", builder_class = nil, receiver = nil)
           if block_given? ^ builder_class.nil?
             raise ArgumentError, 'Either a builder class or a builder definition is required'
           elsif block_given?
-            builder_class = BuildingBlocks.define(&Proc.new)
+            builder_class = BuildingBlocks.build(&Proc.new)
           end
 
           if receiver.is_a?(Proc)

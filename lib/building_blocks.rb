@@ -1,36 +1,36 @@
 require 'building_blocks/version'
 require 'building_blocks/builders/builder_builder'
 
-# Primary BuildingBlocks object providing an interface to define other builders
-# using builders that build new builder objects.
+# Primary BuildingBlocks object providing an interface to build/define other
+# builders using builders that build new builder objects.
 module BuildingBlocks
-  # The default builder used for defining new builders when {define define}
+  # The default builder used for defining new builders when {build build}
   # is invoked.
-  # @see define
+  # @see build
   # @see BuildingBlocks::Builders::BuilderBuilder
   DEFAULT_DEFINITION_BUILDER = BuildingBlocks::Builders::BuilderBuilder
 
   # Returns the object currently configured for use when defining new builders
-  # using {define define}. If a custom value has not been configured the
+  # using {build build}. If a custom value has not been configured the
   # {DEFAULT_DEFINITION_BUILDER default definition builder} is returned.
   # @return [#build] The builder to be used for defining new builders when
-  #   {define define} is invoked.
-  # @see define
+  #   {build build} is invoked.
+  # @see build
   # @see DEFAULT_DEFINITION_BUILDER
   def self.default_definition_builder
     return @default_definition_builder || DEFAULT_DEFINITION_BUILDER
   end
 
   # Sets the class that is used when defining new builders when using
-  # {define define}. If a value of `nil` or `false` is provided the
+  # {build build}. If a value of `nil` or `false` is provided the
   # {DEFAULT_DEFINITION_BUILDER default definition builder} will be used.
   # @param [#build] builder The object to be used when defining new builders
-  #   when using {define define}.
+  #   when using {build build}.
   # @raise [ArgumentError] Raised if the object provided does not implement
   #   a #build method and is neither nil nor false.
   # @return [#build] The builder argument provided is returned.
   # @see DEFAULT_DEFINITION_BUILDER
-  # @see define
+  # @see build
   def self.default_definition_builder=(builder)
     if !!builder && !builder.respond_to?(:build)
       raise ArgumentError, 'Expected object that responds to #build'
@@ -49,7 +49,7 @@ module BuildingBlocks
   # @return [Object] The result of invoking `build` on the
   #   `definition_builder` (often an instance of the `definition_builder`).
   # @see default_definition_builder
-  def self.define(definition_builder = self.default_definition_builder, *args)
+  def self.build(definition_builder = self.default_definition_builder, *args)
     block_given? ? definition_builder.build(*args, &Proc.new) : definition_builder.build(*args)
   end
 

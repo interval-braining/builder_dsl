@@ -42,19 +42,19 @@ module BuildingBlocks
 
         setup do
           @struct = struct = Struct.new(:key, :value)
-          @dict_builder = BuildingBlocks.define do
+          @dict_builder = BuildingBlocks.build do
             resource_class struct
             attribute(:key)
             attribute(:value)
           end
-          @builder = BuildingBlocks.define
+          @builder = BuildingBlocks.build
         end
 
 
         context '::attribute' do
 
           should 'raise ArgumentError unless attribute name provided' do
-            assert_raises(ArgumentError) { BuildingBlocks.define { attribute } }
+            assert_raises(ArgumentError) { BuildingBlocks.build { attribute } }
           end
 
 
@@ -88,18 +88,18 @@ module BuildingBlocks
 
           should 'raise an error unless a Builder class xor proc is provided' do
             assert_raises(ArgumentError) do
-              BuildingBlocks.define { builder(:foo) }
+              BuildingBlocks.build { builder(:foo) }
             end
 
             dict_builder = @dict_builder
             assert_raises(ArgumentError) do
-              BuildingBlocks.define { builder(:foo, :foo=, dict_builder) { |i| } }
+              BuildingBlocks.build { builder(:foo, :foo=, dict_builder) { |i| } }
             end
           end
 
 
           should 'raise an error unless an attr_name is provided' do
-            assert_raises(ArgumentError) { BuildingBlocks.define { builder } }
+            assert_raises(ArgumentError) { BuildingBlocks.build { builder } }
           end
 
 
@@ -112,7 +112,7 @@ module BuildingBlocks
 
           should 'take a custom receiver method name' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuildingBlocks.define do
+            builder = BuildingBlocks.build do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
@@ -124,7 +124,7 @@ module BuildingBlocks
 
           should 'take a custom receiver proc' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuildingBlocks.define do
+            builder = BuildingBlocks.build do
               resource_class struct
               builder(:foo, :value=, dict_builder, lambda { |i| String })
             end
@@ -135,7 +135,7 @@ module BuildingBlocks
 
           should 'should accept a proc that is a Builder definition' do
             struct = @struct
-            builder = BuildingBlocks.define do
+            builder = BuildingBlocks.build do
               resource_class struct
               builder(:foo, :value=) do |i|
                 resource_class struct
@@ -151,7 +151,7 @@ module BuildingBlocks
             dict_builder, struct = @dict_builder, @struct
             db = dict_builder.build
             dict_builder.expects(:build).returns(db)
-            builder = BuildingBlocks.define do
+            builder = BuildingBlocks.build do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
@@ -162,7 +162,7 @@ module BuildingBlocks
 
           should 'accept a custom receiver identifier' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuildingBlocks.define do
+            builder = BuildingBlocks.build do
               resource_class struct
               builder(:value, :value=, dict_builder)
               builder(:foo, :value=, dict_builder, :value)
@@ -336,7 +336,7 @@ module BuildingBlocks
 
         setup do
           @struct = struct = Struct.new(:key, :value)
-          @dict_builder = BuildingBlocks.define do
+          @dict_builder = BuildingBlocks.build do
             resource_class struct
             attribute(:key)
             attribute(:value)
@@ -348,7 +348,7 @@ module BuildingBlocks
 
           setup do
             dict_builder, struct = @dict_builder, @struct
-            @builder_instance = BuildingBlocks.define do
+            @builder_instance = BuildingBlocks.build do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
