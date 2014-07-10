@@ -1,8 +1,8 @@
-# BuilderDSL
-[![Build Status](https://travis-ci.org/interval-braining/builder_dsl.png)](https://travis-ci.org/interval-braining/builder_dsl)
-[![Coverage Status](https://coveralls.io/repos/interval-braining/builder_dsl/badge.png)](https://coveralls.io/r/interval-braining/builder_dsl)
-[![Code Climate](https://codeclimate.com/github/interval-braining/builder_dsl.png)](https://codeclimate.com/github/interval-braining/builder_dsl)
-[![Dependency Status](https://gemnasium.com/interval-braining/builder_dsl.png)](https://gemnasium.com/interval-braining/builder_dsl)
+# BuildingBlocks
+[![Build Status](https://travis-ci.org/interval-braining/building_blocks.png)](https://travis-ci.org/interval-braining/building_blocks)
+[![Coverage Status](https://coveralls.io/repos/interval-braining/building_blocks/badge.png)](https://coveralls.io/r/interval-braining/building_blocks)
+[![Code Climate](https://codeclimate.com/github/interval-braining/building_blocks.png)](https://codeclimate.com/github/interval-braining/building_blocks)
+[![Dependency Status](https://gemnasium.com/interval-braining/building_blocks.png)](https://gemnasium.com/interval-braining/building_blocks)
 
 Simple DSL for defining Builder classes with customized DSLs.
 
@@ -10,7 +10,7 @@ Simple DSL for defining Builder classes with customized DSLs.
 
 Add this line to your application's Gemfile:
 
-    gem 'builder_dsl'
+    gem 'building_blocks'
 
 And then execute:
 
@@ -18,11 +18,11 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install builder_dsl
+    $ gem install building_blocks
 
 ## Usage
 
-BuilderDSL makes it easy to create customized DSLs for building all variety of
+BuildingBlocks makes it easy to create customized DSLs for building all variety of
 objects. At its simplest, a builder is any Class or Module that implements a
 build function.
 
@@ -35,14 +35,14 @@ build function.
 ```ruby
 
   # Uses default definition builder
-  BuilderDSL.define do
+  BuildingBlocks.define do
     # stuff
   end
 
 
   # Uses custom builder to define new builder. Additional args are passed to
   # the build method of the definition_builder_class.
-  BuilderDSL.define(definition_builder_class, :foo) do
+  BuildingBlocks.define(definition_builder_class, :foo) do
     # stuff
   end
 ```
@@ -52,7 +52,7 @@ build function.
 
 ## Contributing
 
-1. Fork it ( https://github.com/interval-braining/builder_dsl/fork )
+1. Fork it ( https://github.com/interval-braining/building_blocks/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)

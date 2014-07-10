@@ -1,14 +1,14 @@
-require 'builder_dsl/version'
-require 'builder_dsl/builders/builder_builder'
+require 'building_blocks/version'
+require 'building_blocks/builders/builder_builder'
 
-# Primary BuilderDSL object providing an interface to define other builders
+# Primary BuildingBlocks object providing an interface to define other builders
 # using builders that build new builder objects.
-module BuilderDSL
+module BuildingBlocks
   # The default builder used for defining new builders when {define define}
   # is invoked.
   # @see define
-  # @see BuilderDSL::Builders::BuilderBuilder
-  DEFAULT_DEFINITION_BUILDER = BuilderDSL::Builders::BuilderBuilder
+  # @see BuildingBlocks::Builders::BuilderBuilder
+  DEFAULT_DEFINITION_BUILDER = BuildingBlocks::Builders::BuilderBuilder
 
   # Returns the object currently configured for use when defining new builders
   # using {define define}. If a custom value has not been configured the

@@ -1,16 +1,16 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'builder_dsl/version'
+require 'building_blocks/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'builder_dsl'
-  spec.version       = BuilderDSL::VERSION
+  spec.name          = 'building_blocks'
+  spec.version       = BuildingBlocks::VERSION
   spec.authors       = ['Danny Guinther']
   spec.email         = ['dannyguinther@gmail.com']
-  spec.summary       = %q{Builder DSL}
+  spec.summary       = %q{Building Blocks}
   spec.description   = %q{Simple DSL for defining Object builders}
-  spec.homepage      = 'https://github.com/interval-braining/builder_dsl'
+  spec.homepage      = 'https://github.com/interval-braining/building_blocks'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")

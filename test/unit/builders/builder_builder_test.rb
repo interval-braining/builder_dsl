@@ -1,6 +1,6 @@
 require 'test_helper'
 
-module BuilderDSL
+module BuildingBlocks
   module Builders
     class BuilderBuilderTest < MiniTest::Test
 
@@ -9,7 +9,7 @@ module BuilderDSL
         should 'generate a new Builder class without block given' do
           builder = BuilderBuilder.build
           assert_kind_of Class, builder
-          assert builder.ancestors.include?(BuilderDSL::Builders::BuilderBuilder::InstanceMethods)
+          assert builder.ancestors.include?(BuildingBlocks::Builders::BuilderBuilder::InstanceMethods)
         end
 
 
@@ -42,19 +42,19 @@ module BuilderDSL
 
         setup do
           @struct = struct = Struct.new(:key, :value)
-          @dict_builder = BuilderDSL.define do
+          @dict_builder = BuildingBlocks.define do
             resource_class struct
             attribute(:key)
             attribute(:value)
           end
-          @builder = BuilderDSL.define
+          @builder = BuildingBlocks.define
         end
 
 
         context '::attribute' do
 
           should 'raise ArgumentError unless attribute name provided' do
-            assert_raises(ArgumentError) { BuilderDSL.define { attribute } }
+            assert_raises(ArgumentError) { BuildingBlocks.define { attribute } }
           end
 
 
@@ -88,18 +88,18 @@ module BuilderDSL
 
           should 'raise an error unless a Builder class xor proc is provided' do
             assert_raises(ArgumentError) do
-              BuilderDSL.define { builder(:foo) }
+              BuildingBlocks.define { builder(:foo) }
             end
 
             dict_builder = @dict_builder
             assert_raises(ArgumentError) do
-              BuilderDSL.define { builder(:foo, :foo=, dict_builder) { |i| } }
+              BuildingBlocks.define { builder(:foo, :foo=, dict_builder) { |i| } }
             end
           end
 
 
           should 'raise an error unless an attr_name is provided' do
-            assert_raises(ArgumentError) { BuilderDSL.define { builder } }
+            assert_raises(ArgumentError) { BuildingBlocks.define { builder } }
           end
 
 
@@ -112,7 +112,7 @@ module BuilderDSL
 
           should 'take a custom receiver method name' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuilderDSL.define do
+            builder = BuildingBlocks.define do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
@@ -124,7 +124,7 @@ module BuilderDSL
 
           should 'take a custom receiver proc' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuilderDSL.define do
+            builder = BuildingBlocks.define do
               resource_class struct
               builder(:foo, :value=, dict_builder, lambda { |i| String })
             end
@@ -135,7 +135,7 @@ module BuilderDSL
 
           should 'should accept a proc that is a Builder definition' do
             struct = @struct
-            builder = BuilderDSL.define do
+            builder = BuildingBlocks.define do
               resource_class struct
               builder(:foo, :value=) do |i|
                 resource_class struct
@@ -151,7 +151,7 @@ module BuilderDSL
             dict_builder, struct = @dict_builder, @struct
             db = dict_builder.build
             dict_builder.expects(:build).returns(db)
-            builder = BuilderDSL.define do
+            builder = BuildingBlocks.define do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end
@@ -162,7 +162,7 @@ module BuilderDSL
 
           should 'accept a custom receiver identifier' do
             dict_builder, struct = @dict_builder, @struct
-            builder = BuilderDSL.define do
+            builder = BuildingBlocks.define do
               resource_class struct
               builder(:value, :value=, dict_builder)
               builder(:foo, :value=, dict_builder, :value)
@@ -336,7 +336,7 @@ module BuilderDSL
 
         setup do
           @struct = struct = Struct.new(:key, :value)
-          @dict_builder = BuilderDSL.define do
+          @dict_builder = BuildingBlocks.define do
             resource_class struct
             attribute(:key)
             attribute(:value)
@@ -348,7 +348,7 @@ module BuilderDSL
 
           setup do
             dict_builder, struct = @dict_builder, @struct
-            @builder_instance = BuilderDSL.define do
+            @builder_instance = BuildingBlocks.define do
               resource_class struct
               builder(:foo, :value=, dict_builder)
             end

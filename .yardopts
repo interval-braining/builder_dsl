@@ -1,6 +1,6 @@
 --output-dir doc/
 --readme README.md
---title BuilderDSL
+--title BuildingBlocks
 --markup=markdown
 --protected
 --private
