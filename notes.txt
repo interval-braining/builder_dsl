@@ -1,0 +1,17 @@
+Definition method belongs on root library constant
+
+Default builder can easily be swapped out.
+
+Some higher level item needs to coordinate what builder should get what arguments
+and what should be done with the result.
+
+NewBuilderClass = 
+
+Should the builder have awareness of what it's supposed to do with whatever it
+creates? Makes them less reusable. Seems like invoker should know how to dispatch.
+
+Is it possible for the builder that ultimately wraps other builders to generic?
+
+
+
+

@@ -22,9 +22,92 @@ Or install it yourself as:
 
 ## Usage
 
-BuildingBlocks makes it easy to create customized DSLs for building all variety of
-objects. At its simplest, a builder is any Class or Module that implements a
-build function.
+BuildingBlocks strives to make it easy to create customizable block-based DSLs
+for building all variety of objects.
+
+This is achieved through the use of Builder objects. At their core, Builders are
+any object that defines a `build` method that takes in a block and returns an
+Object. How that block is used and what Object is returned can depend greatly on
+the Builder being used. In some cases the block could be ignored entirely. In
+other cases the Object returned could be a JSON string. It all depends on the
+Builder.
+
+Because Builders are just Plain Old Ruby Objects, there are no restrictions on
+how Builders can be defined or what they can accomplish during their build
+process. However, since there are a few common patterns employed by most
+Builders, BuildingBlocks offers a Buillder Builder that allows for defining
+Builder objects using a simple DSL.
+
+### BuilderBuilder DSL
+BuildingBlocks is not itself a Builder, however it does implement a `build`
+method that delegates all calls to the configured
+`BuildingBlocks.default_builder`. By default the `default_builder` is configured
+to use `BuildingBlocks::Builders::BuilderBuilder`, a sort of meta-Builder in that
+it's a Builder that also happens to build other valid Builders.
+
+```ruby
+  # Creating a new builder class using the default builder DSL
+  Point = Struct.new(:x, :y)
+  PointBuilder = BuildingBlocks.build do
+    resource_class Point
+    attribute :x
+    attribute :y
+  end
+
+  # Creating a new Point instance using PointBuilder
+  # Both the block arg, builder, and self are the PointBuilder instance
+  point = PointBuilder.build do |builder|
+    x 1
+    y 1
+  end
+  # => #<struct Point x=1, y=1>
+
+
+  # A more complex example of the default builder DSL
+  class Circle
+    attr_accessor :radius
+    attr_reader :center
+
+    def center=(point)
+      raise ArgumentError, 'Bad point' unless point.is_a?(Point)
+      @center = point
+    end
+  end
+
+  CircleBuilder = BuildingBlocks.build do
+    resource_class Circle
+    attribute :radius
+    builder :center, :center=, PointBuilder
+    delegate :x, :x=, :center
+    delegate :y, :y=, :center
+  end
+
+  circle = CircleBuilder.build do |c|
+    radius 5
+    center do |m|
+      x 5
+      y 5
+    end
+    y 1
+  end
+  # => #<Circle:0x000000030af0e8 @center=#<struct Point x=5, y=1>, @radius=5>
+```
+
+More information of the default builder definition DSL can be found in the
+[docs]()
+
+### Builders
+At the core, a Builder is any Object that defines a `build` method that takes a
+block and returns an Object. How that block is used and what Object is returned
+can depend greatly on the Builder being used. In some cases the block may be
+ignored entirely. In other cases the Object returned may be a JSON string. It
+all depends on the Builder.
+
+### Using a custom definition DSL
+
+ At its simplest, a builder is any Class or Module or object that
+implements a **build** method. As far as BuildingBlocks is concerned, such a
+**build** method should 
 
 ```ruby
   CustomBuilder.build(*args) do |stuff|
@@ -32,22 +115,12 @@ build function.
   end
 ```
 
-```ruby
-
-  # Uses default definition builder
-  BuildingBlocks.define do
-    # stuff
-  end
-
-
-  # Uses custom builder to define new builder. Additional args are passed to
-  # the build method of the definition_builder_class.
-  BuildingBlocks.define(definition_builder_class, :foo) do
-    # stuff
-  end
-```
 
 ## Configuration
+
+```ruby
+  BuildingBlocks.default_builder=
+```
 
 
 ## Contributing
